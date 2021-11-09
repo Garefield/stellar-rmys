@@ -5,7 +5,6 @@ import json
 import os
 import sys
 import requests
-import threading
 
 class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
     def __init__(self,player:StellarPlayer.IStellarPlayer):
@@ -20,23 +19,31 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
         self.wd = ''
         self.source = []
         self.allmovidesdata = {}
-        self.dwthread = threading.Thread(target=self._downThread)
     
     def start(self):
         super().start()
         self.configjson = self.player.dataDirectory + '\\source.json'
-        self.loadSource()
-        self.dwthread.start()
-        
-                
-         
-    def _downThread(self):
-        down_url = "https://cdn.jsdelivr.net/gh/Garefield/stellar_rmys@main/source.json"
+        down_url = "https://cdn.jsdelivr.net/gh/Garefield/stellar-rmys@main/source.json"
         r = requests.get(down_url) 
-        if r.status_code == 200:
+        result = r.status_code
+        if result == 200:
             with open(self.configjson,'wb') as f:
                 f.write(r.content)
             self.loadSource()
+                
+         
+    def _downThread(self):
+        down_url = "https://cdn.jsdelivr.net/gh/Garefield/stellar-rmys@main/source.json"
+        r = requests.get(down_url) 
+        result = r.status_code
+        if result == 200:
+            print(self.configjson)
+            with open(self.configjson,'wb') as f:
+                f.write(r.content)
+            self.loadSource()
+        else:
+            print('requests error')
+            print(result)
     
     def loadSource(self):
         self.loadSourceFile(self.configjson)
