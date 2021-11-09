@@ -22,7 +22,7 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
     
     def start(self):
         super().start()
-        self.configjson = self.player.dataDirectory + '\\source.json'
+        self.configjson = 'source.json'
         down_url = "https://cdn.jsdelivr.net/gh/Garefield/stellar-rmys@main/source.json"
         r = requests.get(down_url) 
         result = r.status_code
@@ -30,20 +30,6 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
             with open(self.configjson,'wb') as f:
                 f.write(r.content)
             self.loadSource()
-                
-         
-    def _downThread(self):
-        down_url = "https://cdn.jsdelivr.net/gh/Garefield/stellar-rmys@main/source.json"
-        r = requests.get(down_url) 
-        result = r.status_code
-        if result == 200:
-            print(self.configjson)
-            with open(self.configjson,'wb') as f:
-                f.write(r.content)
-            self.loadSource()
-        else:
-            print('requests error')
-            print(result)
     
     def loadSource(self):
         self.loadSourceFile(self.configjson)
