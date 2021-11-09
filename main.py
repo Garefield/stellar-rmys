@@ -98,8 +98,7 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
             
         
     def on_grid_click(self, page, listControl, item, itemControl):
-        index = (self.pageindex - 1) * 20 + item
-        mediainfo = self.medias[index]
+        mediainfo = self.medias[item]
         self.createMediaFrame(mediainfo)
         
     def createMediaFrame(self,mediainfo):
@@ -140,12 +139,14 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
 
     def loadPageData(self):
         maxnum = len(self.source)
-        if (self.pageindex - 1) * 20 < maxnum:
+        if (self.pageindex - 1) * 20 > maxnum:
             return
         self.medias = []
         startnum = (self.pageindex - 1) * 20
         endnum = self.pageindex * 20
-        endnum = min(maxnum - startnum,endnum)
+        endnum = min(maxnum,endnum)
+        print(startnum)
+        print(endnum)
         for i in range(startnum,endnum):
             self.medias.append(self.source[i])
         self.cur_page = '第' + str(self.pageindex) + '页'
@@ -166,8 +167,6 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
         self.loading(True)
     
     def onClickNextPage(self, *args):
-        print(self.pageindex)
-        print(self.pagenumbers)
         if self.pageindex >= self.pagenumbers:
             return
         self.pageindex = self.pageindex + 1
@@ -180,15 +179,6 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
         self.loading()
         self.loadPageData()
         self.loading(True)
-    
-                
-    def on_movieurl_click(self, page, listControl, item, itemControl):
-        if len(self.allmovidesdata[page]['actmovies']) > item:
-            playurl = self.allmovidesdata[page]['actmovies'][item]['url']
-            self.player.play(playurl)
-            
-    def playMovieUrl(self,playpageurl):
-        return
         
     def loading(self, stopLoading = False):
         if hasattr(self.player,'loadingAnimation'):
