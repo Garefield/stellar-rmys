@@ -23,7 +23,7 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
     def start(self):
         super().start()
         self.configjson = 'source.json'
-        down_url = "https://cdn.jsdelivr.net/gh/Garefield/stellar-rmys@main/source.json"
+        down_url = "https://cdn.jsdelivr.net/gh/nomoodhalashao/my-movie@main/source.json"
         r = requests.get(down_url) 
         result = r.status_code
         if result == 200:
