@@ -5,6 +5,7 @@ import json
 import os
 import sys
 import requests
+from shutil import copyfile
 
 class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
     def __init__(self,player:StellarPlayer.IStellarPlayer):
@@ -19,27 +20,39 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
         self.wd = ''
         self.source = []
         self.allmovidesdata = {}
+        self.mediasize = 18
     
     def start(self):
         super().start()
         self.configjson = 'source.json'
+        jsonpath = self.player.dataDirectory + '\\source.json'
+        if os.path.exists(jsonpath) == False:
+            localpath = os.path.split(os.path.realpath(__file__))[0] + '\\source.json'
+            print(localpath)
+            if os.path.exists(localpath):
+                try:
+                    copyfile(localpath,jsonpath)
+                except IOError as e:
+                    print("Unable to copy file. %s" % e)
+                except:
+                    print("Unexpected error:", sys.exc_info())
         down_url = "https://cdn.jsdelivr.net/gh/nomoodhalashao/my-movie@main/source.json"
-        r = requests.get(down_url) 
+        r = requests.get(down_url,timeout = 5,verify=False) 
         result = r.status_code
         if result == 200:
             with open(self.configjson,'wb') as f:
                 f.write(r.content)
-            self.loadSource()
+        self.loadSource()
     
     def loadSource(self):
         self.loadSourceFile(self.configjson)
-        displaynum = min(len(self.source),20)
+        displaynum = min(len(self.source),self.mediasize)
         self.medias = []
         for i in range(displaynum):
             self.medias.append(self.source[i])
         self.pageindex = 1
-        self.pagenumbers = len(self.source) // 20
-        if self.pagenumbers * 20 < len(self.source):
+        self.pagenumbers = len(self.source) // self.mediasize
+        if self.pagenumbers * self.mediasize < len(self.source):
             self.pagenumbers = self.pagenumbers + 1
         self.cur_page = '第' + str(self.pageindex) + '页'
         self.max_page = '共' + str(self.pagenumbers) + '页'   
@@ -57,7 +70,7 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
     
     def show(self):
         controls = self.makeLayout()
-        self.doModal('main',800,700,'',controls)        
+        self.doModal('main',800,680,'',controls)        
     
     def makeLayout(self):
         mediagrid_layout = [
@@ -65,7 +78,7 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
                 {
                     'group': [
                         {'type':'image','name':'picture', '@click':'on_grid_click'},
-                        {'type':'link','name':'title','textColor':'#ff7f00','fontSize':15,'height':0.15, '@click':'on_grid_click'}
+                        {'type':'link','name':'title','textColor':'#ff7f00','fontSize':13,'height':0.15,'hAlign':'center','@click':'on_grid_click'}
                     ],
                     'dir':'vertical'
                 }
@@ -73,17 +86,17 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
         ]
         controls = [
             {'type':'space','height':5},
-            {'type':'grid','name':'mediagrid','itemlayout':mediagrid_layout,'value':self.medias,'separator':True,'itemheight':240,'itemwidth':150},
+            {'type':'grid','name':'mediagrid','itemlayout':mediagrid_layout,'value':self.medias,'separator':True,'itemheight':200,'itemwidth':130},
             {'group':
                 [
                     {'type':'space'},
                     {'group':
                         [
                             {'type':'label','name':'cur_page',':value':'cur_page'},
-                            {'type':'link','name':'首页','@click':'onClickFirstPage'},
-                            {'type':'link','name':'上一页','@click':'onClickFormerPage'},
-                            {'type':'link','name':'下一页','@click':'onClickNextPage'},
-                            {'type':'link','name':'末页','@click':'onClickLastPage'},
+                            {'type':'link','name':'首页','fontSize':13,'@click':'onClickFirstPage'},
+                            {'type':'link','name':'上一页','fontSize':13,'@click':'onClickFormerPage'},
+                            {'type':'link','name':'下一页','fontSize':13,'@click':'onClickNextPage'},
+                            {'type':'link','name':'末页','fontSize':13,'@click':'onClickLastPage'},
                             {'type':'label','name':'max_page',':value':'max_page'},
                         ]
                         ,'width':0.7
@@ -105,29 +118,32 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
         medianame = mediainfo['title']
         self.allmovidesdata[medianame] = mediainfo['url']
         controls = [
-            {'type':'space','height':5},
+            {'type':'space','height':10},
             {'group':[
-                    {'type':'image','name':'mediapicture', 'value':mediainfo['picture'],'width':0.45},
+                    {'type':'image','name':'mediapicture', 'value':mediainfo['picture'],'width':0.4},
+                    {'type':'space','width':10},
                     {'group':[
                             {'type':'label','name':'medianame','textColor':'#ff7f00','fontSize':15,'value':mediainfo['fullname'],'height':40},
-                            {'type':'label','name':'info','textColor':'#005555','value':mediainfo['info'],'height':1.0,'vAlign':'top'}
-                        ],
-                        'dir':'vertical',
-                        'width':0.75
-                    }
-                ],
-                'width':1.0,
-                'height':350
-            },
-            {'group':[
+                            {'type':'space','height':10},
+                            {'type':'label','name':'info','textColor':'#005555','value':mediainfo['info'],'height':250,'vAlign':'top'},
+                            {'type':'space','height':5},
+                        {'group':[
                     {'type':'space','width':20},
-                    {'type':'link','name':'下载','width':30,'@click':'onDownClick'}, 
+                    {'type':'link','name':'下载','fontSize':16,'width':150,'vAlign':'center','@click':'onDownClick'}, 
                     {'type':'space','width':15},
-                    {'type':'link','name':'播放','width':30,'@click':'onPlayClick'}
-                ]
-            }
+                    {'type':'link','name':'播放','fontSize':16,'width':150,'vAlign':'center','@click':'onPlayClick'}
+                    ]
+                    }
+                        ],
+                        'dir':'vertical'
+                    },
+                    {'type':'space','width':10}
+                ],
+                'width':1.0
+            },
+            {'type':'space','height':10}
         ]
-        result,control = self.doModal(mediainfo['title'],650,400,'',controls)
+        result,control = self.doModal(mediainfo['title'],680,400,'',controls)
 
     def onDownClick(self, pageId, control, *args):
         url = self.allmovidesdata[pageId]
@@ -139,11 +155,11 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
 
     def loadPageData(self):
         maxnum = len(self.source)
-        if (self.pageindex - 1) * 20 > maxnum:
+        if (self.pageindex - 1) * self.mediasize > maxnum:
             return
         self.medias = []
-        startnum = (self.pageindex - 1) * 20
-        endnum = self.pageindex * 20
+        startnum = (self.pageindex - 1) * self.mediasize
+        endnum = self.pageindex * self.mediasize
         endnum = min(maxnum,endnum)
         print(startnum)
         print(endnum)
