@@ -37,11 +37,14 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
                 except:
                     print("Unexpected error:", sys.exc_info())
         down_url = "https://cdn.jsdelivr.net/gh/nomoodhalashao/my-movie@main/source.json"
-        r = requests.get(down_url,timeout = 5,verify=False) 
-        result = r.status_code
-        if result == 200:
-            with open(self.configjson,'wb') as f:
-                f.write(r.content)
+        try:
+            r = requests.get(down_url,timeout = 5,verify=False) 
+            result = r.status_code
+            if result == 200:
+                with open(self.configjson,'wb') as f:
+                    f.write(r.content)
+        except:
+            print('get remote source.json error')
         self.loadSource()
     
     def loadSource(self):
@@ -64,7 +67,6 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
         print(len(fileJson))
         for item in fileJson:
             newitem = {'title':item['name'],'fullname':item['fullname'],'picture':item['pic_url'],'info':item['detail'],'url':item['magnet']}
-            print(newitem)
             self.source.append(newitem)
         file.close()    
     
