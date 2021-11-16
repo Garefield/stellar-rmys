@@ -191,7 +191,7 @@ class rmysplugin(StellarPlayer.IStellarPlayerPlugin):
         self.loading(True)
         
     def onClickLastPage(self, *args):
-        self.pageindex = self.max_page
+        self.pageindex = self.pagenumbers
         self.loading()
         self.loadPageData()
         self.loading(True)
